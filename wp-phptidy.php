@@ -151,6 +151,7 @@ case "-h":
 	exit;
 case "suffix":
 case "replace":
+case "inplace":
 case "diff":
 case "source":
 case "files":
@@ -341,6 +342,19 @@ foreach ( $files as $file ) {
 		$cache['md5sums'][$file] = md5( $source );
 
 		break;
+	case "inplace":
+
+		if ( !file_put_contents( $file, $source ) ) {
+			echo "Error: The file '".$file."' could not be overwritten.\n";
+			exit( 1 );
+		}
+		verbose( "  replaced.\n" );
+		++$replaced;
+
+		// Write new md5sum into cache
+		$cache['md5sums'][$file] = md5( $source );
+
+		break;
 	case "diff":
 
 		$tmpfile = "/tmp/tmp.phptidy.php";
@@ -392,6 +406,7 @@ Usage: phptidy.php command [files|options]
 Commands:
   suffix   Write output into files with suffix .phptidy.php
   replace  Replace files and backup original as .phptidybak
+  inplace  Replace files without making any backup
   diff     Show diff between old and new source
   source   Show processed source code of affected files
   files    Show files that would be processed
