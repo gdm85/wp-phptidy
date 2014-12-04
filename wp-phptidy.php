@@ -1208,35 +1208,36 @@ function fix_comma_space( &$tokens ) {
  * @param array   $tokens (reference)
  */
 function fix_round_bracket_space( &$tokens ) {
-
+	$toremove = array();
 	foreach ( $tokens as $key => &$token ) {
 		if ( !is_string( $token ) ) continue;
+		
+		// if there is no next token, don't bother
+		if ( !isset( $tokens[$key+1][0] ))
+			continue;
+		
 		if (
 			// If the current token is a start round bracket...
 			$token === "(" and
-			// ...and the next token is no whitespace
-			!( isset( $tokens[$key+1][0] ) and $tokens[$key+1][0] === T_WHITESPACE ) and
-			// ...and the next token is not an end round bracket
-			!( isset( $tokens[$key+1][0] ) and $tokens[$key+1][0] === ')' )
+			// ...and the next token is a whitespace
+			$tokens[$key+1][0] === T_WHITESPACE
 		) {
-			// Insert one space
-			array_splice( $tokens, $key+1, 0, array(
-					array( T_WHITESPACE, " " )
-				) );
+			// mark next token for removal
+			$toremove[] = $key+1;
 		}
 		else if (
 			// If the current token is an end round bracket...
 			$token === ")" and
-			// ...and the previous token is no whitespace
-			!( isset( $tokens[$key-1][0] ) and $tokens[$key-1][0] === T_WHITESPACE ) and
-			// ...and the previous token is a start round bracket
-			!( isset( $tokens[$key-1][0] ) and $tokens[$key-1][0] === '(' )
+			// ...and the previous token is a whitespace
+			$tokens[$key-1][0] === T_WHITESPACE
 		) {
-			// Insert one space
-			array_splice( $tokens, $key, 0, array(
-					array( T_WHITESPACE, " " )
-				) );
+			// mark previous token for removal
+			$toremove[] = $key-1;
 		}
+	}
+	
+	if (count($toremove)) {
+		$tokens = array_diff_key($tokens, array_flip($toremove));
 	}
 }
 
